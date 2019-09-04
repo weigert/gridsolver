@@ -1,4 +1,3 @@
 # tectonics
 
-![GitHub Logo](/images/logo.png)
-Format: ![Alt Text](url)
+![Example Terrain](https://github.com/weigert/tectonics/blob/master/out/height.png)
