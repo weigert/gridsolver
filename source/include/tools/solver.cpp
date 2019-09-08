@@ -84,22 +84,18 @@ void emptyArray(std::vector<CArray> &delta, unsigned int size);
 //Term Helpers
 CArray diff(CArray field, int x, int y);              //Differential Real space, degree x and y
 CArray fdiff(CArray field, int x, int y);             //Differential Fourier space, degree x and y
+CArray abs(CArray field);
 CArray scale(CArray field, double a, double b);       //Linear Scale between a, b
 CArray roll(CArray field, glm::vec2 offset);
+CArray shift(CArray field, CArray x, CArray y);
 CArray diffuse(CArray field, double mu, int cycles);
+CArray clamp(CArray field, double low, double high);
 
 //Complex Operations
 CArray fft(CArray coef);                               //Fourier Transform
 CArray ifft(CArray coef);                              //Inverse Fourier Transform
 CArray cluster(CArray field, int &nclusters);           //Clustering Operation
 float autothresh(CArray height, float start, float fraction); //Auto Thresholder
-
-//Visualization
-void image(std::string name, CArray a, CArray b, CArray c);
-void grayscale(CArray field, std::string name);
-void colorthresh(CArray field, std::string name, float t, glm::vec3 c1, glm::vec3 c2);
-void colorgrad(CArray field, std::string name, glm::vec3 c1, glm::vec3 c2);
-void colorthreshgrad(CArray field, std::string name, float t, glm::vec3 c1, glm::vec3 c2, glm::vec3 c3, glm::vec3 c4);
 
 /*
 ================================================================================
@@ -205,6 +201,24 @@ CArray roll(CArray field, glm::vec2 offset){
   return coef;
 }
 
+CArray shift(CArray field, CArray x, CArray y){
+  //New Array
+  CArray coef(0.0, modes.x*modes.y);
+  //Loop over the Field
+  for(unsigned int i = 0; i < field.size(); i++){
+    glm::vec2 offset = glm::floor(glm::vec2(x[i].real(), y[i].real()));
+    int projected = (int)(ind(pos(i)+offset)+modes.x*modes.y)%(int)(modes.x*modes.y);
+    coef[i] = field[projected];
+  }
+  return coef;
+}
+
+CArray clamp(CArray field, double low, double high){
+  field[field > high] = (complex)high; //Clamp
+  field[field < low] = (complex)low;
+  return field;
+}
+
 CArray scale(CArray field, double min, double max){
   //Return a threshold
   double fmax = field[0].real();
@@ -224,6 +238,15 @@ CArray scale(CArray field, double min, double max){
   }
   return field;
 }
+
+CArray abs(CArray field){
+  //Absolute Value
+  for(unsigned int i = 0; i < field.size(); i++){
+    field[i] = (field[i] < 0.0)?-1.0*field[i]:field[i];
+  }
+  return field;
+}
+
 
 //2D N-th order Differential in Fourier Space
 CArray fdiff(CArray field, int x, int y){
@@ -294,7 +317,7 @@ CArray cluster(CArray field, int &nclusters){
 float autothresh(CArray height, float start, float fraction){
   //Compute the Sealevel
   float test = 0.0;
-  while((test - fraction)*(test - fraction) > 0.01){
+  while((test - fraction)*(test - fraction) > 0.001){
     //Compute land above and below sealevel
     CArray above(0.0, modes.x*modes.y);
     CArray below(0.0, modes.x*modes.y);
@@ -320,70 +343,6 @@ float autothresh(CArray height, float start, float fraction){
     }
   }
   return start;
-}
-
-
-/*
-================================================================================
-                                  Other
-================================================================================
-*/
-
-void image(std::string name, CArray a, CArray b, CArray c){
-  CImg<unsigned char> img(modes.x, modes.y, 1, 3);
-  //Draw the Image
-  for(int i = 0; i < img.width(); i++){
-    for(int j = 0; j < img.height(); j++){
-      //Create the Image
-      img(i, j, 0, 0) = a[ind(glm::vec2(i, j))].real();
-      img(i, j, 0, 1) = b[ind(glm::vec2(i, j))].real();
-      img(i, j, 0, 2) = c[ind(glm::vec2(i, j))].real();
-    }
-  }
-  //Save to File
-  img.save_png(name.c_str());
-}
-
-void grayscale(CArray field, std::string name){
-  //Do the Grayscale Image
-  image(name, (complex)255.0*field, (complex)255.0*field, (complex)255.0*field);
-}
-
-void colorthresh(CArray field, std::string name, float t, glm::vec3 c1, glm::vec3 c2){
-  //Do a colorthreshold
-  CArray a(c2.x, modes.x*modes.y);
-  a[field > t] = (complex)c1.x;
-
-  CArray b(c2.y, modes.x*modes.y);
-  b[field > t] = (complex)c1.y;
-
-  CArray c(c2.z, modes.x*modes.y);
-  c[field > t] = (complex)c1.z;
-
-  image(name, a, b, c);
-}
-
-void colorgrad(CArray field, std::string name, glm::vec3 c1, glm::vec3 c2){
-  //Do a color gradient
-  CArray a =  field*(complex)c2.x+((complex)1.0-field)*(complex)c1.x;
-  CArray b =  field*(complex)c2.y+((complex)1.0-field)*(complex)c1.y;
-  CArray c =  field*(complex)c2.z+((complex)1.0-field)*(complex)c1.z;
-  image(name, a, b, c);
-}
-
-void colorthreshgrad(CArray field, std::string name, float t, glm::vec3 c1, glm::vec3 c2, glm::vec3 c3, glm::vec3 c4){
-  //Do a colorthreshold
-  BArray test = field > t;
-  CArray a =  field*(complex)c2.x+((complex)1.0-field)*(complex)c1.x;
-  a[test] = (field*(complex)c3.x+((complex)1.0-field)*(complex)c4.x)[test];
-
-  CArray b =  field*(complex)c2.y+((complex)1.0-field)*(complex)c1.y;
-  b[test] = (field*(complex)c3.y+((complex)1.0-field)*(complex)c4.y)[test];
-
-  CArray c =  field*(complex)c2.z+((complex)1.0-field)*(complex)c1.z;
-  c[test] = (field*(complex)c3.z+((complex)1.0-field)*(complex)c4.z)[test];
-
-  image(name, a, b, c);
 }
 
 //End of namespace
