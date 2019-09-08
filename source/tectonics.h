@@ -9,10 +9,9 @@
 //Tools
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-
-#include "include/imgui/imgui.h"
-#include "include/imgui/imgui_impl_sdl.h"
-#include "include/imgui/imgui_impl_opengl3.h"
+#include "include/tools/imgui/imgui.h"
+#include "include/tools/imgui/imgui_impl_sdl.h"
+#include "include/tools/imgui/imgui_impl_opengl3.h"
 #include <GL/glew.h>
 
 #include <SDL2/SDL.h>

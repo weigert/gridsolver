@@ -35,6 +35,7 @@ bool Geology::setup(){
   solver.dim = d;
   solver.timeStep = 0.001;
   solver.fields = geologyInitialize();
+  solver._caller = &Geology::geologyIntegrator; //Set the Caller
 
   return true;
 }
@@ -62,6 +63,9 @@ std::vector<CArray> Geology::geologyInitialize(){
   std::vector<CArray> fields;
   solve::emptyArray(fields, 3);
 
+  //Set the Initial Value
+  fields[2] = (complex)0.4;
+
   //Perlin Noise Module
   noise::module::Perlin perlin;
   perlin.SetOctaveCount(6);
@@ -79,7 +83,7 @@ std::vector<CArray> Geology::geologyInitialize(){
       //Generate a Volcanism Value
       fields[0][i*(int)d.y+j] = (float)(rand()%SEED)/(SEED);
       fields[1][i*(int)d.y+j] = ((voronoi.GetValue((float)i/d.x, (float)j/d.y, a)));
-      fields[2][i*(int)d.y+j] = 0.25;
+      fields[2][i*(int)d.y+j] = 0.4;
     }
   }
 

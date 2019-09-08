@@ -12,11 +12,12 @@ public:
   noise::module::Perlin _wind;
 
   //Setter Upper
-  bool setup(Geology geology);
+  Geology* geologyptr;  //Pointer the the geology class (we need this!)
+  bool setup(Geology &geology);
 
   //Field Initializers and Integrators
-  Solver solver;
-  std::vector<CArray> climateInitialize(CArray height);
+  Solver<Climate> solver;
+  std::vector<CArray> climateInitialize();
   std::vector<CArray> climateIntegrator(std::vector<CArray> &_fields);
   std::vector<CArray> erosionIntegrator(std::vector<CArray> &_fields);
 };

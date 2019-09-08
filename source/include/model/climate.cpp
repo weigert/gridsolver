@@ -1,18 +1,16 @@
 #include "geology.h"
 #include "climate.h"
 
-bool Climate::setup(Geology geology){
-  //Initial Values
-  d = geology.d;
-  sealevel = geology.sealevel;
-  SEED = geology.SEED;
+bool Climate::setup(Geology &geology){
+  //Set the Geology pointer
+  geologyptr = &geology;
 
   //Setup the Solver
   solver.name = "Climate Solver";
-  solver.dim = d;
+  solver.dim = geology.d;
   solver.timeStep = 0.001;
-  solver.addField( geology.solver.fields[2] );
-  solver.appendFields( climateInitialize( geology.solver.fields[2]) );	//Intialize with heightmap
+  solver.fields = climateInitialize();
+  solver._caller = &Climate::climateIntegrator; //Set the Caller
 
   return true;
 }
@@ -24,26 +22,32 @@ bool Climate::setup(Geology geology){
 */
 
 //
-std::vector<CArray> Climate::climateInitialize(CArray height){
+std::vector<CArray> Climate::climateInitialize(){
+  //Reset these Values (might have changed)
+  d = geologyptr->d;
+  sealevel = geologyptr->sealevel;
+  SEED = geologyptr->SEED;
+
   //Blank Fields
   solve::modes = d;
   std::vector<CArray> fields;
-  solve::emptyArray(fields, 5);
+  solve::emptyArray(fields, 6);
 
   //Perlin Noise Module
   _wind.SetOctaveCount(2);
   _wind.SetFrequency(12);
 
   //Set intial Values
-  fields[0] = 0.0;        //Wind
-  fields[1] = 0.7;        //Temperature
-  fields[2] = 0.4;        //Humidity
-  fields[3] = 0.0;        //Downfall
-  fields[4] = 0.0;        //Clouds
+  fields[0] = geologyptr->solver.fields[2];
+  fields[1] = 0.0;        //Wind
+  fields[2] = 0.7;        //Temperature
+  fields[3] = 0.4;        //Humidity
+  fields[4] = 0.0;        //Downfall
+  fields[5] = 0.0;        //Clouds
 
   //Modify Values
-  fields[1][height > sealevel] = 0.4;
-  fields[2][height > sealevel] = 0.2;
+  fields[1][geologyptr->solver.fields[2] > sealevel] = 0.4;
+  fields[2][geologyptr->solver.fields[2] > sealevel] = 0.2;
 
   //Return the Fields
   return fields;
@@ -63,7 +67,6 @@ std::vector<CArray> Climate::climateIntegrator(std::vector<CArray> &_fields){
   float theta = 2*3.14159265*_wind.GetValue(dayfrac, SEED, SEED);
   glm::vec2 _winddir = glm::vec2(0.5)*glm::vec2(cos(theta), sin(theta));
   //Get the Windstrength
-  std::cout<<_winddir.x<<" "<<_winddir.y<<std::endl;
   CArray heightproject = solve::roll(_fields[0], glm::floor(glm::vec2(10)*_winddir));
   _fields[1] = solve::scale(heightproject - _fields[0], 0.0, 1.0);
 
@@ -96,7 +99,7 @@ std::vector<CArray> Climate::climateIntegrator(std::vector<CArray> &_fields){
   _fields[5][cloudshift > 0.0] = cloudshift[cloudshift > 0.0];
   _test = (complex)0.54+(complex)0.23*_fields[2];
   _fields[5][_fields[3] > _test] += ((complex)0.007*ones)[_fields[3] > _test];
-  _fields[5][_fields[3] < _test] = ((complex)0.3*ones)[_fields[3] < _test];
+  _fields[5][_fields[3] < _test] -= ((complex)0.3*ones)[_fields[3] < _test];
 
   //Clamp the Quantities
   _fields[2] = solve::clamp(_fields[2], 0.0, 1.0);

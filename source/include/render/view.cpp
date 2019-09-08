@@ -146,7 +146,8 @@ void View::renderGUI(Model &model){
   //End Drawing
   ImGui::End();
 
-  ImGui::ShowDemoWindow();
+  //Widget Helper
+  //ImGui::ShowDemoWindow();
 
   //Render IMGUI
   ImGui::Render();
@@ -189,6 +190,40 @@ void View::renderField(Model &model){
 template<typename Model>
 SDL_Surface* View::getImage(Model &model){
   std::cout<<"No rendering rules for the fields of this model kind."<<std::endl;
+
+  /*
+  //Theoretical Example Template:
+
+  //Array for the Color
+  CArray R(0.0, geology.d.x*geology.d.y);
+  CArray G(0.0, geology.d.x*geology.d.y);
+  CArray B(0.0, geology.d.x*geology.d.y);
+  CArray A(255.0, geology.d.x*geology.d.y);
+
+
+  //Manipulate R, G, B, A as a function of your solvers fields.
+
+
+  //Construct and Return the Surface
+  SDL_Surface *s = SDL_CreateRGBSurface(0, geology.d.x, geology.d.y, 32, 0, 0, 0, 0);
+  SDL_LockSurface(s);
+
+  //Create raw data pointer
+  unsigned char *img_raw = (unsigned char*)s->pixels;
+
+  for(int i = 0; i < geology.d.x*geology.d.y; i++){
+  	//Raw Pointer Stuff
+    *(img_raw+4*i)    = (unsigned char)R[i].real();
+    *(img_raw+4*i+1)  = (unsigned char)G[i].real();
+    *(img_raw+4*i+2)  = (unsigned char)B[i].real();
+    *(img_raw+4*i+3)  = (unsigned char)A[i].real();
+  }
+
+  SDL_UnlockSurface(s);
+  return s;
+  */
+
+
   return NULL;
 }
 
@@ -251,251 +286,105 @@ SDL_Surface* View::getImage<Geology>(Geology &geology){
 template<>
 SDL_Surface* View::getImage<Climate>(Climate &climate){
   //Here we want to actually draw whatever the current selected field is.
+  //Array for the Color
+  CArray R(0.0, climate.d.x*climate.d.y);
+  CArray G(0.0, climate.d.x*climate.d.y);
+  CArray B(0.0, climate.d.x*climate.d.y);
+  CArray A(255.0, climate.d.x*climate.d.y);
 
-  return NULL;
-}
+  //Switch the Current Field
+  switch(curField){
+    case 0:{ //Height
+      //Do a colorthreshold gradient
+      BArray test = climate.solver.fields[0] > climate.sealevel;
+      R = climate.solver.fields[0]*(complex)76+((complex)1.0-climate.solver.fields[0])*(complex)54;
+      R[test] = (climate.solver.fields[0]*(complex)224+((complex)1.0-climate.solver.fields[0])*(complex)0)[test];
 
-//One way to edit asurface
-/* This assumes that color value zero is black. Use
-   SDL_MapRGBA() for more robust surface color mapping!
-   height times pitch is the size of the surface's whole buffer.*/
-/*
-SDL_LockSurface(surface);
-SDL_memset(surface->pixels, 0, surface->h * surface->pitch);
-SDL_UnlockSurface(surface);
-*/
+      G = climate.solver.fields[0]*(complex)106+((complex)1.0-climate.solver.fields[0])*(complex)74;
+      G[test] = (climate.solver.fields[0]*(complex)171+((complex)1.0-climate.solver.fields[0])*(complex)135)[test];
 
-/*
+      B = climate.solver.fields[0]*(complex)135+((complex)1.0-climate.solver.fields[0])*(complex)97;
+      B[test] = (climate.solver.fields[0]*(complex)138+((complex)1.0-climate.solver.fields[0])*(complex)68)[test];
+      break;}
+    case 1:{ //Wind
+      //Simple Grayscale
+      R = climate.solver.fields[1]*(complex)255;
+      G = climate.solver.fields[1]*(complex)255;
+      B = climate.solver.fields[1]*(complex)255;
+      break;}
+    case 2:{ //Temperature
+      //Simple Color Gradient
+      R = climate.solver.fields[2]*(complex)255+((complex)1.0-climate.solver.fields[2])*(complex)255;
+      G = climate.solver.fields[2]*(complex)0  +((complex)1.0-climate.solver.fields[2])*(complex)255;
+      B = climate.solver.fields[2]*(complex)255+((complex)1.0-climate.solver.fields[2])*(complex)0;
+      break;}
+    case 3:{ //Humidity
+      //Simple Color Gradient
+      R = climate.solver.fields[3]*(complex)255+((complex)1.0-climate.solver.fields[3])*(complex)0;
+      G = climate.solver.fields[3]*(complex)255+((complex)1.0-climate.solver.fields[3])*(complex)0;
+      B = climate.solver.fields[3]*(complex)255+((complex)1.0-climate.solver.fields[3])*(complex)255;
+      break;}
+    case 4:{ //Downfall
+      //Do a colorthreshold gradient
+      BArray test = climate.solver.fields[0] > climate.sealevel;
+      R = climate.solver.fields[0]*(complex)76+((complex)1.0-climate.solver.fields[0])*(complex)54;
+      R[test] = (climate.solver.fields[0]*(complex)224+((complex)1.0-climate.solver.fields[0])*(complex)0)[test];
 
-//Make some actual informative plots
-solve::colorgrad(_fields[1], "out/wind.png", glm::vec3(0, 0, 0), glm::vec3(255, 255, 255));
+      G = climate.solver.fields[0]*(complex)106+((complex)1.0-climate.solver.fields[0])*(complex)74;
+      G[test] = (climate.solver.fields[0]*(complex)171+((complex)1.0-climate.solver.fields[0])*(complex)135)[test];
 
-//Humidity Temperature Map
-solve::overlay((complex)0.5*_fields[2], "out/height.png", "out/temphumid.png", glm::vec3(255, 0, 0));
-solve::overlay((complex)0.5*_fields[3], "out/temphumid.png", "out/temphumid.png", glm::vec3(0, 0, 255));
+      B = climate.solver.fields[0]*(complex)135+((complex)1.0-climate.solver.fields[0])*(complex)97;
+      B[test] = (climate.solver.fields[0]*(complex)138+((complex)1.0-climate.solver.fields[0])*(complex)68)[test];
 
-//Test the Clouds Overlay
-solve::overlay(_fields[5], "out/height.png", "out/downfall.png", glm::vec3(229));
-solve::overlay(_fields[4], "out/downfall.png", "out/downfall.png", glm::vec3(10));
+      //Add the downfall overlay
+      R *= ((complex)1.0-climate.solver.fields[4]);
+      G *= ((complex)1.0-climate.solver.fields[4]);
+      B *= ((complex)1.0-climate.solver.fields[4]);
+      R += ((complex)0*climate.solver.fields[4]);
+      G += ((complex)0*climate.solver.fields[4]);
+      B += ((complex)0*climate.solver.fields[4]);
 
+      break;}
+    case 5:{ //Clouds
+      //Do a colorthreshold gradient
+      BArray test = climate.solver.fields[0] > climate.sealevel;
+      R = climate.solver.fields[0]*(complex)76+((complex)1.0-climate.solver.fields[0])*(complex)54;
+      R[test] = (climate.solver.fields[0]*(complex)224+((complex)1.0-climate.solver.fields[0])*(complex)0)[test];
 
+      G = climate.solver.fields[0]*(complex)106+((complex)1.0-climate.solver.fields[0])*(complex)74;
+      G[test] = (climate.solver.fields[0]*(complex)171+((complex)1.0-climate.solver.fields[0])*(complex)135)[test];
 
-void PutPixel32_nolock(SDL_Surface * surface, int x, int y, Uint32 color)
-{
-    Uint8 * pixel = (Uint8*)surface->pixels;
-    pixel += (y * surface->pitch) + (x * sizeof(Uint32));
-    *((Uint32*)pixel) = color;
-}
+      B = climate.solver.fields[0]*(complex)135+((complex)1.0-climate.solver.fields[0])*(complex)97;
+      B[test] = (climate.solver.fields[0]*(complex)138+((complex)1.0-climate.solver.fields[0])*(complex)68)[test];
 
-void PutPixel24_nolock(SDL_Surface * surface, int x, int y, Uint32 color)
-{
-    Uint8 * pixel = (Uint8*)surface->pixels;
-    pixel += (y * surface->pitch) + (x * sizeof(Uint8) * 3);
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    pixel[0] = (color >> 24) & 0xFF;
-    pixel[1] = (color >> 16) & 0xFF;
-    pixel[2] = (color >> 8) & 0xFF;
-#else
-    pixel[0] = color & 0xFF;
-    pixel[1] = (color >> 8) & 0xFF;
-    pixel[2] = (color >> 16) & 0xFF;
-#endif
-}
+      //Add the downfall overlay
+      R *= ((complex)1.0-climate.solver.fields[4]);
+      G *= ((complex)1.0-climate.solver.fields[4]);
+      B *= ((complex)1.0-climate.solver.fields[4]);
+      R += ((complex)255*climate.solver.fields[4]);
+      G += ((complex)255*climate.solver.fields[4]);
+      B += ((complex)255*climate.solver.fields[4]);
 
-void PutPixel16_nolock(SDL_Surface * surface, int x, int y, Uint32 color)
-{
-    Uint8 * pixel = (Uint8*)surface->pixels;
-    pixel += (y * surface->pitch) + (x * sizeof(Uint16));
-    *((Uint16*)pixel) = color & 0xFFFF;
-}
-
-void PutPixel8_nolock(SDL_Surface * surface, int x, int y, Uint32 color)
-{
-    Uint8 * pixel = (Uint8*)surface->pixels;
-    pixel += (y * surface->pitch) + (x * sizeof(Uint8));
-    *pixel = color & 0xFF;
-}
-
-void PutPixel32(SDL_Surface * surface, int x, int y, Uint32 color)
-{
-    if( SDL_MUSTLOCK(surface) )
-        SDL_LockSurface(surface);
-    PutPixel32_nolock(surface, x, y, color);
-    if( SDL_MUSTLOCK(surface) )
-        SDL_UnlockSurface(surface);
-}
-
-void PutPixel24(SDL_Surface * surface, int x, int y, Uint32 color)
-{
-    if( SDL_MUSTLOCK(surface) )
-        SDL_LockSurface(surface);
-    PutPixel24_nolock(surface, x, y, color);
-    if( SDL_MUSTLOCK(surface) )
-        SDL_LockSurface(surface);
-}
-
-void PutPixel16(SDL_Surface * surface, int x, int y, Uint32 color)
-{
-    if( SDL_MUSTLOCK(surface) )
-        SDL_LockSurface(surface);
-    PutPixel16_nolock(surface, x, y, color);
-    if( SDL_MUSTLOCK(surface) )
-        SDL_UnlockSurface(surface);
-}
-
-void PutPixel8(SDL_Surface * surface, int x, int y, Uint32 color)
-{
-    if( SDL_MUSTLOCK(surface) )
-        SDL_LockSurface(surface);
-    PutPixel8_nolock(surface, x, y, color);
-    if( SDL_MUSTLOCK(surface) )
-        SDL_UnlockSurface(surface);
-}
-*/
-
-/*
-void View::renderMap(World territory, SDL_Renderer* gRenderer, int xview, int yview) {
-	//Set rendering space and render to screen
-  //Isometric Tiling Logic Based on Height and Surface Map
-  float tileScale = 2;
-  for(int i=0; i<100; i++){
-    for(int j=0; j<100; j++){
-      //For the Depth
-      for(int k =0; k<40; k++){
-        //Take Sourcequad from Territory Surface Tile
-        SDL_Rect sourceQuad;
-          //Replace this with logic based on territory.terrain.surfaceMap[i][j];
-          sourceQuad.x=0;
-          sourceQuad.y=territory.terrain.biomeMap[i][j]*25;
-          sourceQuad.w=33;
-          sourceQuad.h=25;
-        //Take Renderquad from current i and j numbers
-        //Height is in Intervals of 100
-        if((int)territory.terrain.depthMap[i][j]/100>=k){
-          SDL_Rect renderQuad;
-            renderQuad.x=((territory.terrain.worldWidth-tileScale*(tilesize))/2)+j*tileScale*(tilesize)/2-i*tileScale*(tilesize)/2-territory.xview;
-            renderQuad.y=j*8*tileScale+i*8*tileScale-territory.yview-k*(8)*tileScale;
-            renderQuad.w=tileScale*tilesize;
-            renderQuad.h=tileScale*25;
-          //Render
-        if(renderQuad.x > -10 && renderQuad.x < 1000 && renderQuad.y < 1000 && renderQuad.y > -10){
-          SDL_RenderCopy( gRenderer, mTexture, &sourceQuad, &renderQuad);
-        }
-        }
-      }
-    }
+      break;}
+    default:
+      break;
   }
-  SDL_Rect rect;
-  rect.x=1000;
-  rect.y=0;
-  rect.w=400;
-  rect.h=1000;
-  SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 100);
-  SDL_RenderFillRect(gRenderer, &rect);
-}*/
 
-/*
-*/
-/*
-//Surface from File:
-boost::filesystem::path data_dir(boost::filesystem::current_path());
-data_dir /= "out/hunter.png";
+  //Construct and Return the Surface
+  SDL_Surface *s = SDL_CreateRGBSurface(0, climate.d.x, climate.d.y, 32, 0, 0, 0, 0);
+  SDL_LockSurface(s);
 
-//Load the Image to a surface
-return IMG_Load((data_dir).c_str());
-*/
+  //Create raw data pointer
+  unsigned char *img_raw = (unsigned char*)s->pixels;
 
-/*
-
-void image(std::string name, CArray a, CArray b, CArray c){
-  CImg<unsigned char> img(modes.x, modes.y, 1, 3);
-  //Draw the Image
-  for(int i = 0; i < img.width(); i++){
-    for(int j = 0; j < img.height(); j++){
-      //Create the Image
-      img(i, j, 0, 0) = a[ind(glm::vec2(i, j))].real();
-      img(i, j, 0, 1) = b[ind(glm::vec2(i, j))].real();
-      img(i, j, 0, 2) = c[ind(glm::vec2(i, j))].real();
-    }
+  for(int i = 0; i < climate.d.x*climate.d.y; i++){
+  	//Raw Pointer Stuff
+    *(img_raw+4*i)    = (unsigned char)R[i].real();
+    *(img_raw+4*i+1)  = (unsigned char)G[i].real();
+    *(img_raw+4*i+2)  = (unsigned char)B[i].real();
+    *(img_raw+4*i+3)  = (unsigned char)A[i].real();
   }
-  //Save to File
-  img.save_png(name.c_str());
+
+  SDL_UnlockSurface(s);
+  return s;
 }
-
-void mix(std::string in, std::string out, CArray a, CArray b, CArray c, CArray m){
-  //Load the in image
-  CImg<unsigned char> img(in.c_str());
-  //Draw the Image
-  for(int i = 0; i < img.width(); i++){
-    for(int j = 0; j < img.height(); j++){
-      //Create the image blend
-      double frac = m[ind(glm::vec2(i, j))].real();
-      img(i, j, 0, 0) *= (1.0-frac);
-      img(i, j, 0, 1) *= (1.0-frac);
-      img(i, j, 0, 2) *= (1.0-frac);
-
-      img(i, j, 0, 0) += frac*a[ind(glm::vec2(i, j))].real();
-      img(i, j, 0, 1) += frac*b[ind(glm::vec2(i, j))].real();
-      img(i, j, 0, 2) += frac*c[ind(glm::vec2(i, j))].real();
-    }
-  }
-  //Save to File
-  img.save_png(out.c_str());
-}
-
-void grayscale(CArray field, std::string name){
-  //Do the Grayscale Image
-  image(name, (complex)255.0*field, (complex)255.0*field, (complex)255.0*field);
-}
-
-void colorthresh(CArray field, std::string name, float t, glm::vec3 c1, glm::vec3 c2){
-  //Do a colorthreshold
-  CArray a(c2.x, modes.x*modes.y);
-  a[field > t] = (complex)c1.x;
-
-  CArray b(c2.y, modes.x*modes.y);
-  b[field > t] = (complex)c1.y;
-
-  CArray c(c2.z, modes.x*modes.y);
-  c[field > t] = (complex)c1.z;
-
-  image(name, a, b, c);
-}
-
-void colorgrad(CArray field, std::string name, glm::vec3 c1, glm::vec3 c2){
-
-}
-
-//Low low color, High low color, low high color, high high color
-void colorthreshgrad(CArray field, std::string name, float t, glm::vec3 c1, glm::vec3 c2, glm::vec3 c3, glm::vec3 c4){
-  //Do a colorthreshold
-  BArray test = field > t;
-  CArray a =  field*(complex)c2.x+((complex)1.0-field)*(complex)c1.x;
-  a[test] = (field*(complex)c4.x+((complex)1.0-field)*(complex)c3.x)[test];
-
-  CArray b =  field*(complex)c2.y+((complex)1.0-field)*(complex)c1.y;
-  b[test] = (field*(complex)c4.y+((complex)1.0-field)*(complex)c3.y)[test];
-
-  CArray c =  field*(complex)c2.z+((complex)1.0-field)*(complex)c1.z;
-  c[test] = (field*(complex)c4.z+((complex)1.0-field)*(complex)c3.z)[test];
-
-  image(name, a, b, c);
-}
-
-void overlay(CArray field, std::string in, std::string out, glm::vec3 c1){
-  //Do a colorthreshold
-  CArray a((complex)c1.x, modes.x*modes.y);
-  CArray b((complex)c1.y, modes.x*modes.y);
-  CArray c((complex)c1.z, modes.x*modes.y);
-  mix(in, out, a, b, c, field);
-}
-
-
-//solve::grayscale(hotspot, "out/hotspot.png");
-//solve::grayscale(activity, "out/activity.png");
-//solve::grayscale(overlap, "out/overlap.png");
-//solve::colorgrad(_fields[0], "out/volcanism.png", glm::vec3(255, 51, 51), glm::vec3(255, 255, 102));
-//solve::grayscale(_fields[1], "out/plates.png");
-
-
-*/

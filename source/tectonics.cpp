@@ -46,18 +46,26 @@ int main( int argc, char* args[] ) {
 		ImGui_ImplSDL2_ProcessEvent(&e);
 
 		//Choose which guy to display
-		if(view.curTab == 0){
+		if(view.curModel == 0){
 			//Render the Output
 			view.render<Geology>(geology);
 		}
-		else if(view.curTab == 1){
+		else if(view.curModel == 1){
 			view.render<Climate>(climate);
 		}
 
 		//Perform the Integration for both models
-		geology.solver.integrate<Geology>(geology, &Solver::EE, &Geology::geologyIntegrator);
-		climate.solver.integrate<Climate>(climate, &Solver::EE, &Climate::climateIntegrator);
+		geology.solver.integrate(geology, &Solver<Geology>::EE);
+		climate.solver.integrate(climate, &Solver<Climate>::EE);
 	}
+
+	/*
+	How do we copy variables from one field to another?
+
+	so if solver are members of model classes...
+	their fields are contained inside there.
+	Where in this program would it make sense to add that?
+	*/
 
 	/*
 	//Construct another Model Class

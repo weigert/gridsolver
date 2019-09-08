@@ -20,7 +20,7 @@ class View{
     Shader billboardShader;
     Interface* interface;
     Billboard field;
-    int curTab = 0;
+    int curModel = 0;
     int curField = 0;
 
     //Render the entire drawing pipeline
@@ -30,6 +30,8 @@ class View{
     void renderField(Model &model);
     template<typename Model>
     void renderGUI(Model &model);
+
+    //Get an Image from a field
     template<typename Model>
     SDL_Surface* getImage(Model &model);
 

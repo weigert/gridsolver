@@ -34,7 +34,7 @@ public:
   bool setup();
 
   //Field Initializers and Integrators
-  Solver solver;
+  Solver<Geology> solver;
   std::vector<CArray> geologyInitialize();                              //Returns intial fields
   std::vector<CArray> geologyIntegrator(std::vector<CArray> &_fields);  //Returns time-stepped fields
 };
