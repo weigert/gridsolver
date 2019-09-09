@@ -187,14 +187,14 @@ void Interface::drawModel<Climate>(View &view, Climate &climate){
   ImGui::TextUnformatted("Climate Integrator");
   if (ImGui::Button("Run N-Steps")){
     //Set the Integrator and Raise the Timesteps
-    climate.solver._caller = &Climate::climateIntegrator;
+    climate.solver.integrator = &Climate::climateIntegrator;
     climate.solver.steps = timeSteps;
     climate.solver.timeStep = f2;
   }
   ImGui::SameLine();
   if (ImGui::Button("Run Inf")){
     //Set the Integrator and Raise the Timesteps
-    climate.solver._caller = &Climate::climateIntegrator;
+    climate.solver.integrator = &Climate::climateIntegrator;
     climate.solver.steps = -1;
     climate.solver.timeStep = f2;
   }
@@ -207,14 +207,14 @@ void Interface::drawModel<Climate>(View &view, Climate &climate){
   ImGui::TextUnformatted("Erosion Integrator");
   if (ImGui::Button("Run N-Steps")){
     //Set the Integrator and Raise the Timesteps
-    climate.solver._caller = &Climate::erosionIntegrator;
+    climate.solver.integrator = &Climate::erosionIntegrator;
     climate.solver.steps = timeSteps;
     climate.solver.timeStep = f2;
   }
   ImGui::SameLine();
   if (ImGui::Button("Run Inf")){
     //Set the Integrator and Raise the Timesteps
-    climate.solver._caller = &Climate::erosionIntegrator;
+    climate.solver.integrator = &Climate::erosionIntegrator;
     climate.solver.steps = -1;
     climate.solver.timeStep = f2;
   }

@@ -6,11 +6,9 @@ bool Climate::setup(Geology &geology){
   geologyptr = &geology;
 
   //Setup the Solver
-  solver.name = "Climate Solver";
-  solver.dim = geology.d;
-  solver.timeStep = 0.001;
+  solver.setup("Climate Solver", geology.d, 0.001);
+  solver.integrator = &Climate::climateIntegrator; //Set the Caller
   solver.fields = climateInitialize();
-  solver._caller = &Climate::climateIntegrator; //Set the Caller
 
   return true;
 }

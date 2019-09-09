@@ -143,13 +143,13 @@ void Interface::drawModel<Geology>(View &view, Geology &geology){
 
   ImGui::TextUnformatted("Geology Integrator");
   if (ImGui::Button("Run N-Steps")){
-    geology.solver._caller = &Geology::geologyIntegrator;
+    geology.solver.integrator = &Geology::geologyIntegrator;
     geology.solver.steps = timeSteps;
     geology.solver.timeStep = f2;
   }
   ImGui::SameLine();
   if (ImGui::Button("Run Inf")){
-    geology.solver._caller = &Geology::geologyIntegrator;
+    geology.solver.integrator = &Geology::geologyIntegrator;
     geology.solver.steps = -1;
     geology.solver.timeStep = f2;
   }

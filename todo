@@ -1,0 +1,47 @@
+
+
+
+
+ToDo:
+
+- Construct other Examples
+- Add color helpers to view class
+- Rename the integrator function to stepped integrator and add the full integrator too
+- Do an upsampling visualization and show that it works
+- Design an erosion model
+- Generate GIFs and write article
+- Cleanup Models
+- Improve Numerics
+
+Erosion:
+- Evaporation
+- Carray capacity
+- Inertia
+- Radius
+- Sedimentation
+- Slope of the heightmap
+- Etc
+
+Numerics:
+- Create outline for how ODE and PDE solvers might work
+
+Cleanup Models:
+- Remove Diffusion Terms and Dimensionality
+
+Standard Functions:
+std::transform (something like apply to all)
+std::transform(begin(collection), end(collection), begin(second), std::back_inserter(results), std::plus);
+
+-> std::count
+
+transform and reduce for doing large operations on these valarray sets?
+instead of clustering and shit? or accumulate where you pass custom functions
+
+std sample
+
+adjacent difference
+
+inner product
+
+binary search -> see if element exists
+can we use this to speed up clustering?

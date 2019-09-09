@@ -12,10 +12,12 @@ public:
   std::vector<CArray> fields;
   //const char* field_names[] = {"Volcanism", "Plates", "Height"};
 
+  //Settings
+  void setup(std::string _name, glm::vec2 _dim, double _t);
   glm::vec2 dim;
-  double timeStep = 1.0;
-  int steps = 0;              //Remaining Steps
   bool updateFields = true;  //If the fields have been updated
+  int steps = 0;             //Remaining Steps
+  double timeStep = 0.0;     //Current Timestep
 
   //Grid Set Manipulators
   void addField(float a[]);
@@ -23,7 +25,7 @@ public:
   void appendFields(std::vector<CArray> a);
 
   //Current Integrator Handle
-  std::vector<CArray>(Model::*_caller)(std::vector<CArray>&);
+  std::vector<CArray>(Model::*integrator)(std::vector<CArray>&);
 
   //Master Integrator (this is called every tick to integrate a single step)
   bool integrate(Model &model, std::vector<CArray> (Solver::*_inte)( Model &model, std::vector<CArray>(Model::*_call)(std::vector<CArray>&_fields)));
@@ -38,6 +40,14 @@ public:
                       Helpers (Field Adders / Handling)
 ================================================================================
 */
+
+template<typename Model>
+void Solver<Model>::setup(std::string _name, glm::vec2 _dim, double _t){
+  name = _name;
+  dim = dim;
+  timeStep = _t;
+}
+
 template<typename Model>
 void Solver<Model>::addField(CArray a){
   //Make sure to set the modes!
@@ -76,7 +86,7 @@ bool Solver<Model>::integrate(Model &model, std::vector<CArray> (Solver::*_inte)
   //If we have any steps left, perform an integration step
   if(steps != 0){
     //Get the Deltas
-    std::vector<CArray> deltas = (*this.*_inte)(model, _caller);
+    std::vector<CArray> deltas = (*this.*_inte)(model, integrator);
 
     //Add the Deltas
     for(unsigned int i = 0; i < fields.size(); i++){

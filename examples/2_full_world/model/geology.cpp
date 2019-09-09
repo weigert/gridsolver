@@ -2,11 +2,9 @@
 
 bool Geology::setup(){
   //Setup the Solver
-  solver.name = "Geology Solver";
-  solver.dim = d;
-  solver.timeStep = 0.001;
+  solver.setup("Geology Solver", d, 0.001);
+  solver.integrator = &Geology::geologyIntegrator;
   solver.fields = geologyInitialize();
-  solver._caller = &Geology::geologyIntegrator; //Set the Caller
 
   return true;
 }
