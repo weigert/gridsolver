@@ -17,11 +17,12 @@ bool Climate::setup(Geology &geology){
 
 /*
 ================================================================================
-                        Climate Model Integrators
+                  Initializer and Integrator Functions
 ================================================================================
 */
 
-//
+//Initalizer
+
 std::vector<CArray> Climate::climateInitialize(){
   //Reset these Values (might have changed)
   d = geologyptr->d;
@@ -53,8 +54,8 @@ std::vector<CArray> Climate::climateInitialize(){
   return fields;
 }
 
+//Integrator: Climate
 
-//Integrators
 std::vector<CArray> Climate::climateIntegrator(std::vector<CArray> &_fields){
   //Create a new field vector
   std::vector<CArray> delta;
@@ -109,6 +110,8 @@ std::vector<CArray> Climate::climateIntegrator(std::vector<CArray> &_fields){
 
   return delta;
 }
+
+//Integrator: Erosion
 
 std::vector<CArray> Climate::erosionIntegrator(std::vector<CArray> &_fields){
   //Create a new field vector

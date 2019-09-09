@@ -190,40 +190,6 @@ void View::renderField(Model &model){
 template<typename Model>
 SDL_Surface* View::getImage(Model &model){
   std::cout<<"No rendering rules for the fields of this model kind."<<std::endl;
-
-  /*
-  //Theoretical Example Template:
-
-  //Array for the Color
-  CArray R(0.0, geology.d.x*geology.d.y);
-  CArray G(0.0, geology.d.x*geology.d.y);
-  CArray B(0.0, geology.d.x*geology.d.y);
-  CArray A(255.0, geology.d.x*geology.d.y);
-
-
-  //Manipulate R, G, B, A as a function of your solvers fields.
-
-
-  //Construct and Return the Surface
-  SDL_Surface *s = SDL_CreateRGBSurface(0, geology.d.x, geology.d.y, 32, 0, 0, 0, 0);
-  SDL_LockSurface(s);
-
-  //Create raw data pointer
-  unsigned char *img_raw = (unsigned char*)s->pixels;
-
-  for(int i = 0; i < geology.d.x*geology.d.y; i++){
-  	//Raw Pointer Stuff
-    *(img_raw+4*i)    = (unsigned char)R[i].real();
-    *(img_raw+4*i+1)  = (unsigned char)G[i].real();
-    *(img_raw+4*i+2)  = (unsigned char)B[i].real();
-    *(img_raw+4*i+3)  = (unsigned char)A[i].real();
-  }
-
-  SDL_UnlockSurface(s);
-  return s;
-  */
-
-
   return NULL;
 }
 

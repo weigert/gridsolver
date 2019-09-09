@@ -28,7 +28,8 @@ public:
   //Master Integrator (this is called every tick to integrate a single step)
   bool integrate(Model &model, std::vector<CArray> (Solver::*_inte)( Model &model, std::vector<CArray>(Model::*_call)(std::vector<CArray>&_fields)));
 
-  //Step Integrators
+  //Step Integration Methods
+  std::vector<CArray> DIRECT(Model &model, std::vector<CArray> (Model::*_call)( std::vector<CArray> &_fields ) );
   std::vector<CArray> EE(Model &model, std::vector<CArray> (Model::*_call)( std::vector<CArray> &_fields ) );
 };
 
@@ -106,5 +107,13 @@ std::vector<CArray> Solver<Model>::EE(Model &model, std::vector<CArray> (Model::
   //Get the Lambdas
   std::vector<CArray> lambdas = (model.*_call)(fields);
   std::for_each(lambdas.begin(), lambdas.end(), [this](CArray &l){ l = (complex)timeStep*l;});
+  return lambdas;
+}
+
+//Explicit Euler Integrator
+template<typename Model>
+std::vector<CArray> Solver<Model>::DIRECT(Model &model, std::vector<CArray> (Model::*_call)( std::vector<CArray> &_fields ) ){
+  //Get the Lambdas
+  std::vector<CArray> lambdas = (model.*_call)(fields);
   return lambdas;
 }

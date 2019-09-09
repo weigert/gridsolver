@@ -61,7 +61,7 @@ void Interface::drawModel<Geology>(View &view, Geology &geology){
     i0 = rand()%1000000;
     geology.SEED = i0;
   }
-
+  ImGui::SameLine();
   //I would like to load the default configuration...
   if (ImGui::Button("Initialize")){
     geology.solver.fields = geology.geologyInitialize();
