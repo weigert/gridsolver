@@ -22,7 +22,7 @@ int main( int argc, char* args[] ) {
 		std::cout<<"Failed to load geology configuration."<<std::endl;
 		return 0;
 	}
-	
+
 	//Construct a Climate Model
 	Climate climate;
 	if(!climate.setup(geology)){
@@ -40,6 +40,7 @@ int main( int argc, char* args[] ) {
 		if( SDL_PollEvent( &e ) != 0 ) {
 			//Quit Event
 			if( e.type == SDL_QUIT ) { quit = true; }
+			if( e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) { quit = true; }
 		}
 
 		//Handle with IMGUI
@@ -54,9 +55,9 @@ int main( int argc, char* args[] ) {
 			view.render<Climate>(climate);
 		}
 
-		//Perform the Integration for both models
-		geology.solver.integrate(geology, &Solver<Geology>::EE);
-		climate.solver.integrate(climate, &Solver<Climate>::DIRECT);
+		//Perform the Integration (one step per tick!) for both models
+		geology.solver.step(geology, &Solver<Geology>::EE);
+		climate.solver.step(climate, &Solver<Climate>::DIRECT);
 	}
 
 	//Clean up

@@ -3,10 +3,6 @@
 
 
 ToDo:
-
-- Construct other Examples
-- Add color helpers to view class
-- Rename the integrator function to stepped integrator and add the full integrator too
 - Do an upsampling visualization and show that it works
 - Design an erosion model
 - Generate GIFs and write article

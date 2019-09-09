@@ -3,6 +3,7 @@
 bool Geology::setup(){
   //Setup the Solver
   solver.setup("Geology Solver", d, 0.001);
+  solver.dim = d;
   solver.integrator = &Geology::geologyIntegrator;
   solver.fields = geologyInitialize();
 
@@ -23,8 +24,7 @@ std::vector<CArray> Geology::geologyInitialize(){
 
   //Blank Fields
   solve::modes = d;
-  std::vector<CArray> fields;
-  solve::emptyArray(fields, 3);
+  std::vector<CArray> fields = solve::emptyArray(3);
 
   //Set the Initial Value
   fields[2] = (complex)0.4;
@@ -55,16 +55,14 @@ std::vector<CArray> Geology::geologyInitialize(){
 }
 
 //Integrator
-
 std::vector<CArray> Geology::geologyIntegrator(std::vector<CArray> &_fields){
   //Create a new field vector
-  std::vector<CArray> delta;
-  solve::emptyArray(delta, _fields.size());
+  std::vector<CArray> delta = solve::emptyArray(_fields.size());
 
   //Label for all plates, and number of clusters
   int nclusters = 0;
-  CArray label = solve::cluster(_fields[1], nclusters);
 
+  CArray label = solve::cluster(_fields[1], nclusters);
   //Compute the Force Vectors
   CArray gradx = solve::scale(solve::diff(_fields[0], 1, 0), -1.0, 1.0);  //Gradient of the Volcanism Map
   CArray grady = solve::scale(solve::diff(_fields[0], 0, 1), -1.0, 1.0);  //Gradient of the Volcanism Map

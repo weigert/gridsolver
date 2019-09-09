@@ -25,7 +25,7 @@ public:
 */
 
 template<>
-SDL_Surface* View::getImage<Geology>(Geology &geology){
+SDL_Surface* View::getSurface<Geology>(Geology &geology){
   //Array for the Color
   CArray R(0.0, geology.d.x*geology.d.y);
   CArray G(0.0, geology.d.x*geology.d.y);
@@ -36,48 +36,25 @@ SDL_Surface* View::getImage<Geology>(Geology &geology){
   switch(curField){
     case 0: //Volcanism
       //Simple Color Gradient
-      R = (complex)255;
-      G = geology.solver.fields[0]*(complex)255+((complex)1.0-geology.solver.fields[0])*(complex)51;
-      B = geology.solver.fields[0]*(complex)102+((complex)1.0-geology.solver.fields[0])*(complex)51;
+      view::gradRGB(glm::vec3(255, 51, 51), glm::vec3(255, 255, 102), geology.solver.fields[0], R, G, B);
       break;
     case 1: //Plates
       //Simple Grayscale
-      R = geology.solver.fields[1]*(complex)255;
-      G = geology.solver.fields[1]*(complex)255;
-      B = geology.solver.fields[1]*(complex)255;
+      view::gradRGB(glm::vec3(0), glm::vec3(255), geology.solver.fields[1], R, G, B);
       break;
     case 2: //Height
       //Do a colorthreshold gradient
       BArray test = geology.solver.fields[2] > geology.sealevel;
-      R = geology.solver.fields[2]*(complex)76+((complex)1.0-geology.solver.fields[2])*(complex)54;
-      R[test] = (geology.solver.fields[2]*(complex)224+((complex)1.0-geology.solver.fields[2])*(complex)0)[test];
-
-      G = geology.solver.fields[2]*(complex)106+((complex)1.0-geology.solver.fields[2])*(complex)74;
-      G[test] = (geology.solver.fields[2]*(complex)171+((complex)1.0-geology.solver.fields[2])*(complex)135)[test];
-
-      B = geology.solver.fields[2]*(complex)135+((complex)1.0-geology.solver.fields[2])*(complex)97;
-      B[test] = (geology.solver.fields[2]*(complex)138+((complex)1.0-geology.solver.fields[2])*(complex)68)[test];
-
+      //Get the sea gradient
+      view::gradRGB(glm::vec3(54, 74, 97), glm::vec3(76, 106, 135), geology.solver.fields[2], R, G, B);
+      //Update certain portions
+      R[test] = view::gradC(0, 224, geology.solver.fields[2])[test];
+      G[test] = view::gradC(135, 171, geology.solver.fields[2])[test];
+      B[test] = view::gradC(68, 138, geology.solver.fields[2])[test];
       break;
   }
 
-  //Construct and Return the Surface
-  SDL_Surface *s = SDL_CreateRGBSurface(0, geology.d.x, geology.d.y, 32, 0, 0, 0, 0);
-  SDL_LockSurface(s);
-
-  //Create raw data pointer
-  unsigned char *img_raw = (unsigned char*)s->pixels;
-
-  for(int i = 0; i < geology.d.x*geology.d.y; i++){
-  	//Raw Pointer Stuff
-    *(img_raw+4*i)    = (unsigned char)R[i].real();
-    *(img_raw+4*i+1)  = (unsigned char)G[i].real();
-    *(img_raw+4*i+2)  = (unsigned char)B[i].real();
-    *(img_raw+4*i+3)  = (unsigned char)A[i].real();
-  }
-
-  SDL_UnlockSurface(s);
-  return s;
+  return view::makeSurface(geology.d, R, G, B, A);
 }
 
 /*
@@ -135,10 +112,10 @@ void Interface::drawModel<Geology>(View &view, Geology &geology){
 
   //Time Increment
   static float f2 = 0.001f;
-  ImGui::DragFloat("Time Increment", &f2, 0.0005f, 0.000f, 1.0f, "%f");
+  ImGui::DragFloat("Time Increment", &f2, 0.0005f, 0.001f, 1.0f, "%f");
 
   //Time Steps
-  static int timeSteps = geology.solver.steps;
+  static int timeSteps = 0;
   ImGui::DragInt("Time Steps", &timeSteps, 1, 1, 500, "%i");
 
   ImGui::TextUnformatted("Geology Integrator");

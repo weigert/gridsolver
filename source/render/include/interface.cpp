@@ -4,18 +4,13 @@
 void Interface::drawTabBar(View &view){
   //Start a tabbar
   if(ImGui::BeginTabBar("Model Selector", ImGuiTabBarFlags_None)){
-    //Simply List All Models
-    if(ImGui::BeginTabItem("Geology")){
-      view.curModel = 0;
-      ImGui::EndTabItem();
-    }
-    if(ImGui::BeginTabItem("Climate")){
-      view.curModel = 1;
-      ImGui::EndTabItem();
-    }
-    if(ImGui::BeginTabItem("Settings")){
-      ImGui::TextUnformatted("Test Setting");
-      ImGui::EndTabItem();
+    //Loop over all Model
+    for(unsigned int i = 0; i < view.models.size(); i++){
+      //Simply List All Models
+      if(ImGui::BeginTabItem(view.models[i].c_str())){
+        view.curModel = i;
+        ImGui::EndTabItem();
+      }
     }
     ImGui::EndTabBar();
   }

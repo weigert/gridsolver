@@ -105,17 +105,17 @@ void View::render(Model &model){
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   //Render the GUI
-  renderGUI<Model>(model);
+  drawInterface<Model>(model);
 
   //Render the Fields
-  renderField<Model>(model);
+  drawField<Model>(model);
 
   //Swap the Window
   SDL_GL_SwapWindow(gWindow);
 }
 
 template<typename Model>
-void View::renderGUI(Model &model){
+void View::drawInterface(Model &model){
 
   //Create IMGUI Interface
   ImGui_ImplOpenGL3_NewFrame();
@@ -156,10 +156,10 @@ void View::renderGUI(Model &model){
 
 //Render the Model
 template<typename Model>
-void View::renderField(Model &model){
+void View::drawField(Model &model){
   if(model.solver.updateFields){
     //Get the Surface
-    if(!field.fromRaw(getImage<Model>(model))){
+    if(!field.fromRaw(getSurface<Model>(model))){
       std::cout<<"Failed to load surface from model."<<std::endl;
       return;
     };
@@ -182,12 +182,21 @@ void View::renderField(Model &model){
 
 /*
 ================================================================================
-                      Templated Field Drawing Rules
+                              Drawing Helpers
 ================================================================================
 */
 
 template<typename Model>
-SDL_Surface* View::getImage(Model &model){
+SDL_Surface* View::getSurface(Model &model){
+  //You have to define your own color-scheme!
   std::cout<<"No rendering rules for the fields of this model kind."<<std::endl;
-  return NULL;
+
+  //Example Construction
+  CArray R(0, model.d.x*model.d.y);
+  CArray G(255, model.d.x*model.d.y);
+  CArray B(0, model.d.x*model.d.y);
+  CArray A(255, model.d.x*model.d.y);
+
+  //Construct the Surface from Arrays of Color Values
+  return view::makeSurface(model.d, R, G, B, A);
 }

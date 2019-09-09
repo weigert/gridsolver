@@ -3,6 +3,7 @@
 #include <complex>
 #include <glm/glm.hpp>
 #include <fftw.h>
+#include <iostream>
 
 using namespace std::complex_literals;
 const double PI = 3.141592653589793238460;
@@ -82,7 +83,7 @@ glm::vec2 pos(int ind);
 
 //Constructors
 CArray fromArray(float a[]);
-void emptyArray(std::vector<CArray> &delta, unsigned int size);
+std::vector<CArray> emptyArray(unsigned int size);
 
 //Term Helpers
 CArray diff(CArray field, int x, int y);              //Differential Real space, degree x and y
@@ -174,12 +175,12 @@ CArray ifft(CArray coef){
                               Solver Term Helpers
 ================================================================================
 */
-void emptyArray(std::vector<CArray> &delta, unsigned int size){
+std::vector<CArray> emptyArray(unsigned int size){
   //Add blank fields to delta
+  std::vector<CArray> delta;
   CArray zero(0.0, modes.x*modes.y);
-  for(unsigned int i = 0; i < size; i++){
-    delta.push_back(zero);
-  }
+  delta.assign(size, zero);
+  return delta;
 }
 
 CArray fromArray(float a[]){  //Constrct field from flat array
@@ -269,8 +270,7 @@ CArray diff(CArray field, int x, int y){
 }
 
 CArray diffuse(CArray field, double mu, int cycles){
-  //Convert into fourier space,
-  //Perform fdiff multiple times
+  //Convert to fourier space
   CArray _d = fft(field);
 
   for(int i = 0; i < cycles; i++){
@@ -296,6 +296,7 @@ CArray cluster(CArray field, int &nclusters){
   for(unsigned int i = 0; i < field.size(); i++){
     //Check if its inside the centroids
     bool contained = false;
+
     for(unsigned int j = 0; j < centroids.size(); j++){
       //Check if we're inside the centroid
       if(centroids[j] == field[i]){
@@ -313,6 +314,7 @@ CArray cluster(CArray field, int &nclusters){
       _labels[i] = (complex)centroids.size();
     }
   }
+
   nclusters = centroids.size();
   return _labels;
 }

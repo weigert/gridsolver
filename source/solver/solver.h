@@ -17,7 +17,7 @@ public:
   glm::vec2 dim;
   bool updateFields = true;  //If the fields have been updated
   int steps = 0;             //Remaining Steps
-  double timeStep = 0.0;     //Current Timestep
+  double timeStep = 0.01;    //Current Timestep
 
   //Grid Set Manipulators
   void addField(float a[]);
@@ -27,8 +27,9 @@ public:
   //Current Integrator Handle
   std::vector<CArray>(Model::*integrator)(std::vector<CArray>&);
 
-  //Master Integrator (this is called every tick to integrate a single step)
-  bool integrate(Model &model, std::vector<CArray> (Solver::*_inte)( Model &model, std::vector<CArray>(Model::*_call)(std::vector<CArray>&_fields)));
+  //Master Integrators (this is called every tick to integrate a single step)
+  bool step(Model &model, std::vector<CArray> (Solver::*_inte)( Model &model, std::vector<CArray>(Model::*_call)(std::vector<CArray>&_fields)));
+  bool integrate(Model &model, int _steps, std::vector<CArray> (Solver::*_inte)( Model &model, std::vector<CArray>(Model::*_call)(std::vector<CArray>&_fields)));
 
   //Step Integration Methods
   std::vector<CArray> DIRECT(Model &model, std::vector<CArray> (Model::*_call)( std::vector<CArray> &_fields ) );
@@ -77,22 +78,25 @@ void Solver<Model>::appendFields(std::vector<CArray> a){
 ================================================================================
 */
 
-//Master Integrator
+//Perform a single step integration every time it is called. Keeps track of remaining steps.
 template<typename Model>
-bool Solver<Model>::integrate(Model &model, std::vector<CArray> (Solver::*_inte)( Model &model, std::vector<CArray> (Model::*_call)(std::vector<CArray> &_fields) )){
+bool Solver<Model>::step(Model &model, std::vector<CArray> (Solver::*_inte)( Model &model, std::vector<CArray> (Model::*_call)(std::vector<CArray> &_fields) )){
   //Set the modes
   solve::modes = dim;
 
   //If we have any steps left, perform an integration step
   if(steps != 0){
+
     //Get the Deltas
-    std::vector<CArray> deltas = (*this.*_inte)(model, integrator);
+    std::vector<CArray> deltas = (*this.*_inte)(model, this->integrator);
 
     //Add the Deltas
     for(unsigned int i = 0; i < fields.size(); i++){
       //Add the Terms to the fields
       fields[i] += deltas[i];
     }
+
+
 
     //Subtract a step
     steps--;
@@ -104,6 +108,32 @@ bool Solver<Model>::integrate(Model &model, std::vector<CArray> (Solver::*_inte)
   //Really, everything should be converted into the fourier space here...
   return true;
 }
+
+//Perform n-steps AT ONCE
+template<typename Model>
+bool Solver<Model>::integrate(Model &model, int _steps, std::vector<CArray> (Solver::*_inte)( Model &model, std::vector<CArray>(Model::*_call)(std::vector<CArray>&_fields))){
+  //Set the modes
+  solve::modes = dim;
+
+  //If we have any steps left, perform an integration step
+  for(int j = 0; j < _steps; j++){
+    //Get the Deltas
+    std::vector<CArray> deltas = (*this.*_inte)(model, this->integrator);
+
+    //Add the Deltas
+    for(unsigned int i = 0; i < fields.size(); i++){
+      //Add the Terms to the fields
+      fields[i] += deltas[i];
+    }
+  }
+
+  //Fields have been update
+  updateFields = true;
+
+  //Really, everything should be converted into the fourier space here...
+  return true;
+}
+
 
 /*
 ================================================================================

@@ -11,6 +11,7 @@ public:
 
   //Load the Texture from some surface
   bool fromRaw(SDL_Surface* TextureImage);
+  bool fromImage(std::string file);
   void setupBuffer();
   void cleanup();
 };

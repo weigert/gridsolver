@@ -7,6 +7,7 @@ bool Climate::setup(Geology &geology){
 
   //Setup the Solver
   solver.setup("Climate Solver", geology.d, 0.001);
+  solver.dim = geology.d;
   solver.integrator = &Climate::climateIntegrator; //Set the Caller
   solver.fields = climateInitialize();
 
@@ -29,8 +30,7 @@ std::vector<CArray> Climate::climateInitialize(){
 
   //Blank Fields
   solve::modes = d;
-  std::vector<CArray> fields;
-  solve::emptyArray(fields, 6);
+  std::vector<CArray> fields = solve::emptyArray(6);
 
   //Perlin Noise Module
   _wind.SetOctaveCount(2);
@@ -56,8 +56,7 @@ std::vector<CArray> Climate::climateInitialize(){
 
 std::vector<CArray> Climate::climateIntegrator(std::vector<CArray> &_fields){
   //Create a new field vector
-  std::vector<CArray> delta;
-  solve::emptyArray(delta, _fields.size());
+  std::vector<CArray> delta = solve::emptyArray(_fields.size());
 
   //Compute the Wind
   //Shift height by wind direction, form difference and divide by gridsize
@@ -113,8 +112,7 @@ std::vector<CArray> Climate::climateIntegrator(std::vector<CArray> &_fields){
 
 std::vector<CArray> Climate::erosionIntegrator(std::vector<CArray> &_fields){
   //Create a new field vector
-  std::vector<CArray> delta;
-  solve::emptyArray(delta, _fields.size());
+  std::vector<CArray> delta= solve::emptyArray(_fields.size());
   std::cout<<"Erosion Integrator!!"<<std::endl;
 
   return delta;

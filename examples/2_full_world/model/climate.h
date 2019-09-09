@@ -29,7 +29,7 @@ public:
 */
 
 template<>
-SDL_Surface* View::getImage<Climate>(Climate &climate){
+SDL_Surface* View::getSurface<Climate>(Climate &climate){
   //Here we want to actually draw whatever the current selected field is.
   //Array for the Color
   CArray R(0.0, climate.d.x*climate.d.y);
@@ -41,46 +41,35 @@ SDL_Surface* View::getImage<Climate>(Climate &climate){
   switch(curField){
     case 0:{ //Height
       //Do a colorthreshold gradient
-      BArray test = climate.solver.fields[0] > climate.sealevel;
-      R = climate.solver.fields[0]*(complex)76+((complex)1.0-climate.solver.fields[0])*(complex)54;
-      R[test] = (climate.solver.fields[0]*(complex)224+((complex)1.0-climate.solver.fields[0])*(complex)0)[test];
-
-      G = climate.solver.fields[0]*(complex)106+((complex)1.0-climate.solver.fields[0])*(complex)74;
-      G[test] = (climate.solver.fields[0]*(complex)171+((complex)1.0-climate.solver.fields[0])*(complex)135)[test];
-
-      B = climate.solver.fields[0]*(complex)135+((complex)1.0-climate.solver.fields[0])*(complex)97;
-      B[test] = (climate.solver.fields[0]*(complex)138+((complex)1.0-climate.solver.fields[0])*(complex)68)[test];
+      BArray test = climate.solver.fields[2] > climate.sealevel;
+      //Get the sea gradient
+      view::gradRGB(glm::vec3(54, 74, 97), glm::vec3(76, 106, 135), climate.solver.fields[2], R, G, B);
+      //Update certain portions
+      R[test] = view::gradC(0, 224, climate.solver.fields[2])[test];
+      G[test] = view::gradC(135, 171, climate.solver.fields[2])[test];
+      B[test] = view::gradC(68, 138, climate.solver.fields[2])[test];
       break;}
     case 1:{ //Wind
       //Simple Grayscale
-      R = climate.solver.fields[1]*(complex)255;
-      G = climate.solver.fields[1]*(complex)255;
-      B = climate.solver.fields[1]*(complex)255;
+      view::gradRGB(glm::vec3(0), glm::vec3(255), climate.solver.fields[1], R, G, B);
       break;}
     case 2:{ //Temperature
       //Simple Color Gradient
-      R = climate.solver.fields[2]*(complex)255+((complex)1.0-climate.solver.fields[2])*(complex)255;
-      G = climate.solver.fields[2]*(complex)0  +((complex)1.0-climate.solver.fields[2])*(complex)255;
-      B = climate.solver.fields[2]*(complex)255+((complex)1.0-climate.solver.fields[2])*(complex)0;
+      view::gradRGB(glm::vec3(255, 255, 0), glm::vec3(255, 0, 255), climate.solver.fields[2], R, G, B);
       break;}
     case 3:{ //Humidity
       //Simple Color Gradient
-      R = climate.solver.fields[3]*(complex)255+((complex)1.0-climate.solver.fields[3])*(complex)0;
-      G = climate.solver.fields[3]*(complex)255+((complex)1.0-climate.solver.fields[3])*(complex)0;
-      B = climate.solver.fields[3]*(complex)255+((complex)1.0-climate.solver.fields[3])*(complex)255;
+      view::gradRGB(glm::vec3(0, 0, 255), glm::vec3(255), climate.solver.fields[3], R, G, B);
       break;}
     case 4:{ //Downfall
       //Do a colorthreshold gradient
-      BArray test = climate.solver.fields[0] > climate.sealevel;
-      R = climate.solver.fields[0]*(complex)76+((complex)1.0-climate.solver.fields[0])*(complex)54;
-      R[test] = (climate.solver.fields[0]*(complex)224+((complex)1.0-climate.solver.fields[0])*(complex)0)[test];
-
-      G = climate.solver.fields[0]*(complex)106+((complex)1.0-climate.solver.fields[0])*(complex)74;
-      G[test] = (climate.solver.fields[0]*(complex)171+((complex)1.0-climate.solver.fields[0])*(complex)135)[test];
-
-      B = climate.solver.fields[0]*(complex)135+((complex)1.0-climate.solver.fields[0])*(complex)97;
-      B[test] = (climate.solver.fields[0]*(complex)138+((complex)1.0-climate.solver.fields[0])*(complex)68)[test];
-
+      BArray test = climate.solver.fields[2] > climate.sealevel;
+      //Get the sea gradient
+      view::gradRGB(glm::vec3(54, 74, 97), glm::vec3(76, 106, 135), climate.solver.fields[2], R, G, B);
+      //Update certain portions
+      R[test] = view::gradC(0, 224, climate.solver.fields[2])[test];
+      G[test] = view::gradC(135, 171, climate.solver.fields[2])[test];
+      B[test] = view::gradC(68, 138, climate.solver.fields[2])[test];
       //Add the downfall overlay
       R *= ((complex)1.0-climate.solver.fields[4]);
       G *= ((complex)1.0-climate.solver.fields[4]);
@@ -92,16 +81,13 @@ SDL_Surface* View::getImage<Climate>(Climate &climate){
       break;}
     case 5:{ //Clouds
       //Do a colorthreshold gradient
-      BArray test = climate.solver.fields[0] > climate.sealevel;
-      R = climate.solver.fields[0]*(complex)76+((complex)1.0-climate.solver.fields[0])*(complex)54;
-      R[test] = (climate.solver.fields[0]*(complex)224+((complex)1.0-climate.solver.fields[0])*(complex)0)[test];
-
-      G = climate.solver.fields[0]*(complex)106+((complex)1.0-climate.solver.fields[0])*(complex)74;
-      G[test] = (climate.solver.fields[0]*(complex)171+((complex)1.0-climate.solver.fields[0])*(complex)135)[test];
-
-      B = climate.solver.fields[0]*(complex)135+((complex)1.0-climate.solver.fields[0])*(complex)97;
-      B[test] = (climate.solver.fields[0]*(complex)138+((complex)1.0-climate.solver.fields[0])*(complex)68)[test];
-
+      BArray test = climate.solver.fields[2] > climate.sealevel;
+      //Get the sea gradient
+      view::gradRGB(glm::vec3(54, 74, 97), glm::vec3(76, 106, 135), climate.solver.fields[2], R, G, B);
+      //Update certain portions
+      R[test] = view::gradC(0, 224, climate.solver.fields[2])[test];
+      G[test] = view::gradC(135, 171, climate.solver.fields[2])[test];
+      B[test] = view::gradC(68, 138, climate.solver.fields[2])[test];
       //Add the downfall overlay
       R *= ((complex)1.0-climate.solver.fields[4]);
       G *= ((complex)1.0-climate.solver.fields[4]);
@@ -115,23 +101,7 @@ SDL_Surface* View::getImage<Climate>(Climate &climate){
       break;
   }
 
-  //Construct and Return the Surface
-  SDL_Surface *s = SDL_CreateRGBSurface(0, climate.d.x, climate.d.y, 32, 0, 0, 0, 0);
-  SDL_LockSurface(s);
-
-  //Create raw data pointer
-  unsigned char *img_raw = (unsigned char*)s->pixels;
-
-  for(int i = 0; i < climate.d.x*climate.d.y; i++){
-  	//Raw Pointer Stuff
-    *(img_raw+4*i)    = (unsigned char)R[i].real();
-    *(img_raw+4*i+1)  = (unsigned char)G[i].real();
-    *(img_raw+4*i+2)  = (unsigned char)B[i].real();
-    *(img_raw+4*i+3)  = (unsigned char)A[i].real();
-  }
-
-  SDL_UnlockSurface(s);
-  return s;
+  return view::makeSurface(climate.d, R, G, B, A);
 }
 
 /*

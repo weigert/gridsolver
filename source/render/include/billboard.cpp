@@ -19,6 +19,12 @@ bool Billboard::fromRaw(SDL_Surface* TextureImage){
   return true;
 }
 
+bool fromImage(std::string file){
+  //Load some image file
+
+  return true;
+}
+
 void Billboard::setupBuffer(){
   GLfloat vert[] = {-0.3, -1.0,
                     -0.3, 1.0,
