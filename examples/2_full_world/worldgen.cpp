@@ -30,6 +30,10 @@ int main( int argc, char* args[] ) {
 		return 0;
 	}
 
+	//Add the Models
+	view.models.push_back("Geology");
+	view.models.push_back("Climate");
+
 	//Game Loop
 	bool quit = false;
 	SDL_Event e;

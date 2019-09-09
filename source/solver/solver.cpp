@@ -77,35 +77,40 @@ namespace solve{
 //Holds the Gridsize currently being worked on
 glm::vec2 modes;
 
-//Member Functions
-int ind(glm::vec2 _p);
+//Index and Vector Conversions on Grid
+int ind(glm::vec2 _p);                  //Use the Modes Size
+int ind(glm::vec2 _p, glm::vec2 _s);    //Use a custom Size
 glm::vec2 pos(int ind);
 
-//Constructors
-CArray fromArray(float a[]);
-std::vector<CArray> emptyArray(unsigned int size);
+//Construction Helpers
+std::vector<CArray> emptyArray(unsigned int size);    //Fill vector of CArrays with zeros
+CArray fromArray(float a[]);                          //Fill CArray from Array
+CArray random(double high, double low);
 
-//Term Helpers
+//Solver Term Helpers
 CArray diff(CArray field, int x, int y);              //Differential Real space, degree x and y
 CArray fdiff(CArray field, int x, int y);             //Differential Fourier space, degree x and y
-CArray abs(CArray field);
+CArray abs(CArray field);                             //Negative values become positive
 CArray scale(CArray field, double a, double b);       //Linear Scale between a, b
-CArray roll(CArray field, glm::vec2 offset);
-CArray shift(CArray field, CArray x, CArray y);
-CArray diffuse(CArray field, double mu, int cycles);
-CArray clamp(CArray field, double low, double high);
+CArray roll(CArray field, glm::vec2 offset);          //Offset everything by a fixed amount
+CArray shift(CArray field, CArray x, CArray y);       //Offset everything by a specific amount
+CArray diffuse(CArray field, double mu, int cycles);  //Returns a diffusion passed CArray
+CArray clamp(CArray field, double low, double high);  //Clamps the values between two values
 
 //Complex Operations
-CArray fft(CArray coef);                               //Fourier Transform
-CArray ifft(CArray coef);                              //Inverse Fourier Transform
-CArray cluster(CArray field, int &nclusters);           //Clustering Operation
-float autothresh(CArray height, float start, float fraction); //Auto Thresholder
+CArray fft(CArray coef);                                            //Fourier Transform
+CArray ifft(CArray coef);                                           //Inverse Fourier Transform
+CArray label(CArray field, int &nareas);                            //Returns label array by value
+CArray convolve(CArray field, CArray kernel, glm::vec2 ksize);      //Returns the kernel convolved
+float autothresh(CArray height, float start, float fraction);       //Auto Thresholder
+CArray sample(CArray field, glm::vec2 oldSize, glm::vec2 newSize);  //Return a higher resolution grid
 
 /*
 ================================================================================
-                        Index and Vector Conversions
+                    Index and Vector Conversions on Grid
 ================================================================================
 */
+
 int ind(glm::vec2 _p){
   //Return the Correct Index
   _p = glm::mod(_p+modes, modes);
@@ -114,6 +119,16 @@ int ind(glm::vec2 _p){
   }
   return 0;
 }
+
+int ind(glm::vec2 _p, glm::vec2 _s){
+  //Return the Correct Index
+  _p = glm::mod(_p+_s, _s);
+  if(glm::all(glm::lessThan(_p, _s)) && glm::all(glm::greaterThanEqual(_p, glm::vec2(0)))){
+    return _p.x*_s.y+_p.y;
+  }
+  return 0;
+}
+
 
 glm::vec2 pos(int ind){
   int _x = ind/modes.y;
@@ -124,57 +139,10 @@ glm::vec2 pos(int ind){
 
 /*
 ================================================================================
-                          Fast Fourier Transform
+                            Construction Helpers
 ================================================================================
 */
-CArray fft(CArray coef){
-  int N = modes.x*modes.y;
-  fftw_complex x[N];
 
-  //Copy from CArray
-  for(int i = 0; i < N; i++){
-    x[i].re = coef[i].real();
-    x[i].im = coef[i].imag();
-  }
-  //Do the Transform
-  fftwnd_plan p = fftw2d_create_plan(modes.x, modes.y, FFTW_FORWARD, FFTW_ESTIMATE | FFTW_IN_PLACE);
-  fftwnd_one(p, x, NULL);
-  fftwnd_destroy_plan(p);
-
-  //Convert Back
-  for(int i = 0; i < N; i++){
-    coef[i] = complex(x[i].re, x[i].im);
-  }
-  return coef;
-}
-
-CArray ifft(CArray coef){
-  int N = modes.x*modes.y;
-  fftw_complex x[N];
-
-  //Copy from CArray
-  for(int i = 0; i < N; i++){
-    x[i].re = coef[i].real();
-    x[i].im = coef[i].imag();
-  }
-  //Do the Transform
-  fftwnd_plan p = fftw2d_create_plan(modes.x, modes.y, FFTW_BACKWARD, FFTW_ESTIMATE | FFTW_IN_PLACE);
-  fftwnd_one(p, x, NULL);
-  fftwnd_destroy_plan(p);
-
-  //Convert Back
-  for(int i = 0; i < N; i++){
-    coef[i] = complex(x[i].re/N, x[i].im/N);
-  }
-  return coef;
-}
-
-
-/*
-================================================================================
-                              Solver Term Helpers
-================================================================================
-*/
 std::vector<CArray> emptyArray(unsigned int size){
   //Add blank fields to delta
   std::vector<CArray> delta;
@@ -193,6 +161,21 @@ CArray fromArray(float a[]){  //Constrct field from flat array
   }
   return coef;
 }
+
+CArray random(double high, double low){
+  CArray coef(0.0, modes.x*modes.y);
+  for(int i = 0; i < modes.x*modes.y; i++){
+    //Generate Blank Vector
+    coef[i] = ((double)(rand()%1000000)/1000000)*(high-low)+low;
+  }
+  return coef;
+}
+
+/*
+================================================================================
+                              Solver Term Helpers
+================================================================================
+*/
 
 CArray roll(CArray field, glm::vec2 offset){
   //New Array
@@ -285,7 +268,55 @@ CArray diffuse(CArray field, double mu, int cycles){
   return ifft(_d);
 }
 
-CArray cluster(CArray field, int &nclusters){
+/*
+================================================================================
+                            Complex Operations
+================================================================================
+*/
+
+CArray fft(CArray coef){
+  int N = modes.x*modes.y;
+  fftw_complex x[N];
+
+  //Copy from CArray
+  for(int i = 0; i < N; i++){
+    x[i].re = coef[i].real();
+    x[i].im = coef[i].imag();
+  }
+  //Do the Transform
+  fftwnd_plan p = fftw2d_create_plan(modes.x, modes.y, FFTW_FORWARD, FFTW_ESTIMATE | FFTW_IN_PLACE);
+  fftwnd_one(p, x, NULL);
+  fftwnd_destroy_plan(p);
+
+  //Convert Back
+  for(int i = 0; i < N; i++){
+    coef[i] = complex(x[i].re, x[i].im);
+  }
+  return coef;
+}
+
+CArray ifft(CArray coef){
+  int N = modes.x*modes.y;
+  fftw_complex x[N];
+
+  //Copy from CArray
+  for(int i = 0; i < N; i++){
+    x[i].re = coef[i].real();
+    x[i].im = coef[i].imag();
+  }
+  //Do the Transform
+  fftwnd_plan p = fftw2d_create_plan(modes.x, modes.y, FFTW_BACKWARD, FFTW_ESTIMATE | FFTW_IN_PLACE);
+  fftwnd_one(p, x, NULL);
+  fftwnd_destroy_plan(p);
+
+  //Convert Back
+  for(int i = 0; i < N; i++){
+    coef[i] = complex(x[i].re/N, x[i].im/N);
+  }
+  return coef;
+}
+
+CArray label(CArray field, int &nareas){
   //Label Array
   CArray _labels(0.0, modes.x*modes.y);
 
@@ -315,7 +346,7 @@ CArray cluster(CArray field, int &nclusters){
     }
   }
 
-  nclusters = centroids.size();
+  nareas = centroids.size();
   return _labels;
 }
 
@@ -348,6 +379,30 @@ float autothresh(CArray height, float start, float fraction){
     }
   }
   return start;
+}
+
+CArray convolve(CArray field, CArray kernel, glm::vec2 ksize){
+  //Construct a padded kernel array
+  CArray padded(0.0, modes.x*modes.y);
+
+  //Loop over the kernelsize
+  for(int k = 0; k < ksize.x; k++){
+    for(int l = 0; l < ksize.y; l++){
+      //Enter the Padded Stuff
+      padded[ind(glm::vec2(k, l)-glm::floor(ksize/glm::vec2(2)))] = kernel[ind(glm::vec2(k, l), ksize)];
+    }
+  }
+
+  //Return Convolution
+  return ifft(fft(padded)*fft(field));
+}
+
+CArray sample(CArray field, glm::vec2 oldSize, glm::vec2 newSize){
+  //Construct our output array
+  CArray coef(0.0, newSize.x*newSize.y);
+  return coef;
+
+  //For some reason, I can't get this to work right now.
 }
 
 //End of namespace

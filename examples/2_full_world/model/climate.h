@@ -41,13 +41,30 @@ SDL_Surface* View::getSurface<Climate>(Climate &climate){
   switch(curField){
     case 0:{ //Height
       //Do a colorthreshold gradient
-      BArray test = climate.solver.fields[2] > climate.sealevel;
+      BArray test = climate.solver.fields[0] > climate.sealevel;
       //Get the sea gradient
-      view::gradRGB(glm::vec3(54, 74, 97), glm::vec3(76, 106, 135), climate.solver.fields[2], R, G, B);
+      view::gradRGB(glm::vec3(54, 74, 97), glm::vec3(76, 106, 135), climate.solver.fields[0], R, G, B);
       //Update certain portions
-      R[test] = view::gradC(0, 224, climate.solver.fields[2])[test];
-      G[test] = view::gradC(135, 171, climate.solver.fields[2])[test];
-      B[test] = view::gradC(68, 138, climate.solver.fields[2])[test];
+      R[test] = view::gradC(0, 224, climate.solver.fields[0])[test];
+      G[test] = view::gradC(135, 171, climate.solver.fields[0])[test];
+      B[test] = view::gradC(68, 138, climate.solver.fields[0])[test];
+
+      //Add the downfall overlay
+      R *= ((complex)1.0-climate.solver.fields[4]);
+      G *= ((complex)1.0-climate.solver.fields[4]);
+      B *= ((complex)1.0-climate.solver.fields[4]);
+      R += ((complex)0*climate.solver.fields[4]);
+      G += ((complex)0*climate.solver.fields[4]);
+      B += ((complex)0*climate.solver.fields[4]);
+
+      //Add the cloud overlay
+      R *= ((complex)1.0-climate.solver.fields[5]);
+      G *= ((complex)1.0-climate.solver.fields[5]);
+      B *= ((complex)1.0-climate.solver.fields[5]);
+      R += ((complex)255*climate.solver.fields[5]);
+      G += ((complex)255*climate.solver.fields[5]);
+      B += ((complex)255*climate.solver.fields[5]);
+
       break;}
     case 1:{ //Wind
       //Simple Grayscale
@@ -60,42 +77,6 @@ SDL_Surface* View::getSurface<Climate>(Climate &climate){
     case 3:{ //Humidity
       //Simple Color Gradient
       view::gradRGB(glm::vec3(0, 0, 255), glm::vec3(255), climate.solver.fields[3], R, G, B);
-      break;}
-    case 4:{ //Downfall
-      //Do a colorthreshold gradient
-      BArray test = climate.solver.fields[2] > climate.sealevel;
-      //Get the sea gradient
-      view::gradRGB(glm::vec3(54, 74, 97), glm::vec3(76, 106, 135), climate.solver.fields[2], R, G, B);
-      //Update certain portions
-      R[test] = view::gradC(0, 224, climate.solver.fields[2])[test];
-      G[test] = view::gradC(135, 171, climate.solver.fields[2])[test];
-      B[test] = view::gradC(68, 138, climate.solver.fields[2])[test];
-      //Add the downfall overlay
-      R *= ((complex)1.0-climate.solver.fields[4]);
-      G *= ((complex)1.0-climate.solver.fields[4]);
-      B *= ((complex)1.0-climate.solver.fields[4]);
-      R += ((complex)0*climate.solver.fields[4]);
-      G += ((complex)0*climate.solver.fields[4]);
-      B += ((complex)0*climate.solver.fields[4]);
-
-      break;}
-    case 5:{ //Clouds
-      //Do a colorthreshold gradient
-      BArray test = climate.solver.fields[2] > climate.sealevel;
-      //Get the sea gradient
-      view::gradRGB(glm::vec3(54, 74, 97), glm::vec3(76, 106, 135), climate.solver.fields[2], R, G, B);
-      //Update certain portions
-      R[test] = view::gradC(0, 224, climate.solver.fields[2])[test];
-      G[test] = view::gradC(135, 171, climate.solver.fields[2])[test];
-      B[test] = view::gradC(68, 138, climate.solver.fields[2])[test];
-      //Add the downfall overlay
-      R *= ((complex)1.0-climate.solver.fields[4]);
-      G *= ((complex)1.0-climate.solver.fields[4]);
-      B *= ((complex)1.0-climate.solver.fields[4]);
-      R += ((complex)255*climate.solver.fields[4]);
-      G += ((complex)255*climate.solver.fields[4]);
-      B += ((complex)255*climate.solver.fields[4]);
-
       break;}
     default:
       break;
@@ -153,8 +134,8 @@ void Interface::drawModel<Climate>(View &view, Climate &climate){
   //Time Steps
   static int timeSteps = climate.solver.steps;
   ImGui::DragInt("Time Steps", &timeSteps, 1, 1, 500, "%i");
-
   ImGui::TextUnformatted("Climate Integrator");
+  ImGui::PushID(0);
   if (ImGui::Button("Run N-Steps")){
     //Set the Integrator and Raise the Timesteps
     climate.solver.integrator = &Climate::climateIntegrator;
@@ -173,10 +154,13 @@ void Interface::drawModel<Climate>(View &view, Climate &climate){
     //Set the Integrator and Raise the Timesteps
     climate.solver.steps = 0;
   }
+  ImGui::PopID();
 
   ImGui::TextUnformatted("Erosion Integrator");
+  ImGui::PushID(1);
   if (ImGui::Button("Run N-Steps")){
     //Set the Integrator and Raise the Timesteps
+    std::cout<<"Ayy"<<std::endl;
     climate.solver.integrator = &Climate::erosionIntegrator;
     climate.solver.steps = timeSteps;
     climate.solver.timeStep = f2;
@@ -193,11 +177,12 @@ void Interface::drawModel<Climate>(View &view, Climate &climate){
     //Set the Integrator and Raise the Timesteps
     climate.solver.steps = 0;
   }
+  ImGui::PopID();
 
   ImGui::TextUnformatted("Fields");
 
   //Listbox
-  const char* listbox_items[] = {"Height", "Wind", "Temperature", "Humidity", "Downfall", "Clouds"};
+  const char* listbox_items[] = {"Sky", "Wind", "Temperature", "Humidity"};
   static int listbox_item_current = 0;
   ImGui::ListBox("Field", &listbox_item_current, listbox_items, IM_ARRAYSIZE(listbox_items), 4);
   view.curField = listbox_item_current;

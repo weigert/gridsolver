@@ -60,9 +60,9 @@ std::vector<CArray> Geology::geologyIntegrator(std::vector<CArray> &_fields){
   std::vector<CArray> delta = solve::emptyArray(_fields.size());
 
   //Label for all plates, and number of clusters
-  int nclusters = 0;
+  int nlabels = 0;
 
-  CArray label = solve::cluster(_fields[1], nclusters);
+  CArray label = solve::label(_fields[1], nlabels);
   //Compute the Force Vectors
   CArray gradx = solve::scale(solve::diff(_fields[0], 1, 0), -1.0, 1.0);  //Gradient of the Volcanism Map
   CArray grady = solve::scale(solve::diff(_fields[0], 0, 1), -1.0, 1.0);  //Gradient of the Volcanism Map
@@ -73,7 +73,7 @@ std::vector<CArray> Geology::geologyIntegrator(std::vector<CArray> &_fields){
   CArray newplate(0.0, solve::modes.x*solve::modes.y);        //New Plate Configuration is empty
 
   //Loop over all cluster labels
-  for(int i = 0; i < nclusters; i++){
+  for(int i = 0; i < nlabels; i++){
     //Mask the force array with
     CArray forcex(0.0, solve::modes.x*solve::modes.y);
     CArray forcey(0.0, solve::modes.x*solve::modes.y);

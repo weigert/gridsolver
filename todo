@@ -1,7 +1,3 @@
-
-
-
-
 ToDo:
 - Do an upsampling visualization and show that it works
 - Design an erosion model
@@ -21,23 +17,54 @@ Erosion:
 Numerics:
 - Create outline for how ODE and PDE solvers might work
 
+Upsampling and Convolution are important.
+Then I can worry about doing more stuff like erosion.
+I would like to have a more robust example system?
+I could also do some testing on ODEs and so on...c
+
+
 Cleanup Models:
 - Remove Diffusion Terms and Dimensionality
 
-Standard Functions:
-std::transform (something like apply to all)
-std::transform(begin(collection), end(collection), begin(second), std::back_inserter(results), std::plus);
 
--> std::count
+  /*
+  Particle Model:
+    -> Spawn a particle
+    -> Let the particle descend along the gradient with inertia
+    -> Particle has a volume that decreases
+    -> Particle has an amount of sediment, proportional to volume
+    -> Particle volume decreases (evaporation)
+    -> Particle accumulates sediment
+      -> Remove height from the guy
+      -> Don't remove more to create a pit
+    -> Particles have an inertia proportional to their volume and sediment
+    -> Inertia affects their speed
+      -> Higher speed means less or more sediment absorbed?
+      -> More or less sediment deposited?
+      ->
+    -> SOME amound of sediment above the limit is deposited at a location
+      (no higher than the place it previously came from)
+    -> If a particle cannot descend, it deposits all sediment at a point
 
-transform and reduce for doing large operations on these valarray sets?
-instead of clustering and shit? or accumulate where you pass custom functions
+  Particle Model doesn't make much sense on this grid. I would be doing extra
+  work implementing a particle based model.
 
-std sample
+  Grid Model:
+      1. Calculate the Heightmap Gradient
+      2. Determine some rain distribution
 
-adjacent difference
+    How do we compute a watershed map?
+    How do we decide where to remove what sediment when?
+    How do we update the heightmap?
 
-inner product
+  Other Effects:
+    Thermal Erosion
+      -> Rock breakage and piling up
+    Wind Erosion
+      -> Sand creation
 
-binary search -> see if element exists
-can we use this to speed up clustering?
+    Most erosion models are based on particles.
+    I decided to use my framework to implement a grid-based approach.
+
+  Spectral methods are very possible.
+  */

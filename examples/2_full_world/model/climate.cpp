@@ -113,7 +113,7 @@ std::vector<CArray> Climate::climateIntegrator(std::vector<CArray> &_fields){
 std::vector<CArray> Climate::erosionIntegrator(std::vector<CArray> &_fields){
   //Create a new field vector
   std::vector<CArray> delta= solve::emptyArray(_fields.size());
-  std::cout<<"Erosion Integrator!!"<<std::endl;
+  std::cout<<"Erosion Integrator!"<<std::endl;
 
   return delta;
 }

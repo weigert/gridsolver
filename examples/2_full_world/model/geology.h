@@ -6,7 +6,7 @@ class Geology{
 public:
   //Image
   glm::vec2 d = glm::vec2(200);
-  int SEED = 1;
+  int SEED = rand()%1000000;
   float sealevel = 0.24;
 
   //Simulation

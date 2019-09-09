@@ -7,11 +7,7 @@
 class Example{
 public:
 	//Parameters
-	glm::vec2 d = glm::vec2(100, 100);   //Size
-
-  /*
-  Other Parameters
-  */
+	glm::vec2 d = glm::vec2(50, 50);   //Size
 
   //Some setup function
   bool setup();
@@ -22,11 +18,6 @@ public:
   //Initializer and Integrator
   std::vector<CArray> exampleInitialize();
   std::vector<CArray> exampleIntegrator(std::vector<CArray> &_fields);
-
-  /*
-  You can have multiple initializers and integrators
-  */
-
 };
 
 /*
@@ -55,11 +46,11 @@ std::vector<CArray> Example::exampleInitialize(){
   solve::modes = d;
 
   //Blank Fields
-  std::vector<CArray> fields = solve::emptyArray(1);  //Size of the fields!
+  std::vector<CArray> fields = solve::emptyArray(2);  //Size of the fields!
 
-  /*
-  Manipulate the Fields!
-  */
+	//Set some random noise
+	fields[0] = solve::random(0.0, 1.0);
+	fields[1] = solve::random(0.0, 1.0);
 
   //Return the Fields
   return fields;
@@ -70,12 +61,10 @@ std::vector<CArray> Example::exampleIntegrator(std::vector<CArray> &_fields){
   //Create a new field vector
   std::vector<CArray> delta = solve::emptyArray(_fields.size());
 
-  /*
-  Manipulate the deltas or the fields directly!
-  */
-
-	//Simply increase it a little bit, so you can see the effect live.
-	_fields[0] += 0.01;	//This adds 0.01 to the entire grid!
+	//Do a kernel convolution using a binomial kernel
+	CArray kernel1 = {0.0625, 0.125, 0.0625, 0.125, 0.25, 0.125, 0.0625, 0.125, 0.0625};
+	CArray kernel2 = {0.0, 0.125, 0.0, 0.125, 0.5, 0.125, 0.0, 0.125, 0.0};
+	_fields[0] = solve::convolve(_fields[0], kernel2, glm::vec2(3));
 
   return delta;
 }
