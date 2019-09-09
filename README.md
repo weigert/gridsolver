@@ -1,4 +1,4 @@
-# solver
+# gridsolver
 
 ![Example 2](https://github.com/weigert/tectonics/blob/master/out/solver.png)
 
