@@ -1,8 +1,6 @@
 #pragma once
-#include "../forward/interface.fwd.h"
-#include "../forward/view.fwd.h"
-#include "../forward/geology.fwd.h"
-#include "../forward/climate.fwd.h"
+#include "interface.fwd.h"
+#include "view.fwd.h"
 
 class Interface{
 public:

@@ -1,5 +1,5 @@
 #pragma once
-#include "../forward/shader.fwd.h"
+#include "shader.fwd.h"
 //Dependencies
 
 class Shader{

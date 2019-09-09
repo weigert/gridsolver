@@ -1,5 +1,5 @@
 #pragma once
-#include "../forward/billboard.fwd.h"
+#include "billboard.fwd.h"
 
 //Class
 class Billboard{

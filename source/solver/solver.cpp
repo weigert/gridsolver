@@ -1,5 +1,8 @@
 #include <valarray>
+#include <vector>
 #include <complex>
+#include <glm/glm.hpp>
+#include <fftw.h>
 
 using namespace std::complex_literals;
 const double PI = 3.141592653589793238460;

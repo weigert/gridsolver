@@ -1,10 +1,8 @@
 #pragma once
-#include "../forward/view.fwd.h"
-#include "../forward/shader.fwd.h"
-#include "../forward/interface.fwd.h"
-#include "../forward/geology.fwd.h"
-#include "../forward/climate.fwd.h"
-#include "../forward/billboard.fwd.h"
+#include "view.fwd.h"
+#include "shader.fwd.h"
+#include "interface.fwd.h"
+#include "billboard.fwd.h"
 
 class View{
   public:
