@@ -84,58 +84,73 @@ Currently, only direct integration and explicit euler integratoin are available 
     
 **Integration Function:**
 
-Constructing integrator functions:
+Integrator functions either act directly on the fields they are supplied, or return a vector of deltas (which are grids) that correspond to the time derivative of the grids. Integrator functions are best constructed with the use of the helper functions from the solve namespace.
 
-In order to do this, it needs to be supplied with
-- A set of "fields"
-- An integration function (instructions)
-- An integration method (how to execute instructions)
+    std::vector<CArray> Geology::geologyIntegrator(std::vector<CArray> &_fields){
+        //"Right-Hand-Side" Grids
+        std::vector<CArray> delta;
+        solve::emptyArray(delta, _fields.size());
+        
+        //Manipulate Fields and Deltas Here!
+        
+        //
+        return delta;
+    }
 
-The fields are contained in the solver as arrays of complex numbers. The solver class is templated so that it has access to members of the model class, and can use the model class for initialization and integration.
+*Helper Functions:* Include things from fast fourier transform on grid, to computing nth order 2D differentials of grid, to clamping, rolling, scaling, and (bad) clustering. Read "solver.cpp" for all details.
 
+*Boolean Masking:* Allows you to manipulate only specific parts of the grid. I apply this heavily in my models. Comparison operators have been defined for various datatypes.
 
-Once the integration function has been set up, you can perform the integration using:
-
-    inte
-
-Additionally, I supply a **solve::** namespace which contains a number of handy functions when constructing integrator functions. This includes constructors for the complex arrays, methods for adding fields to the solver quickly, etc.
-
-
-All of this is templated, so it is simple to construct an arbitrary model class, that contains parameters as its.
-
-The solver integrator function has full access to these members.
-
-
+    //Terrible example
+    CArray A(0.5, d.x*d.y); //Construct
+    CArray B(0.7, d.x*d.y);
+    
+    //Either this
+    BArray test = B > previously_generated_random_field_between_zero_and_one; 
+    A[test] = 1.0;
+    
+    //Or this
+    B[B < previously_generated_random_field_between_zero_and_one] = 0.0;
+    
+    //etc...
 
 #### Using the Renderer
 
+If you plan on using the renderer, the solver must be a member of the model. This is because of how the renderer works at the moment, and this additionally allows for templated definition of drawing rules for the fields of a model, as well as a control interface specific to the models parameters.
 
-If you have multiple models, where the input from one model depends on the other model, t
+The view class handles all the front-end interaction. To use the renderer, you define a drawing rule function and an interface function. These are templated members of the view function. Both have comprehensive examples below, which can be used as is or changed entirely if desired.
 
-- If you plan on using the renderer, the solver must be a member of the model.
+**Drawing Rule Function:** The view class keeps track of the current model and field you are observing. The fields simply contain a complex array of values. The drawing rule function generates an SDL_Surface from the fields of the model. This allows for absolute custom visualization of the data.
+
+        //Drawing Rule Function
+        template<> SDL_Surface* View::getImage<Model>(Model &model){
+            //...
+        }
+        
+**Interface Function:** As every model has unique parameters that require controlling, the interface function is also a templated member of the view class. Thereby, you can use basic ImGui elements to manipulate the simulation in real time.
+
+        //Interface Function
+        template<> void Interface::drawModel<Geology>(View &view, Geology &geology){
+            //...
+        }
+        
+Then, you can perform the rendering of the model containing the solver by calling:
+
+        view.render<Model>(model);
+
+For an exact implementation of the render pipeline, see the full examples.
+
+In the future, creating the color-schemes will be more simplified using general rules and some helper functions.
 
 The renderer is written in OpenGL3 and SDL2. Feel free to use the renderer's code too.
 
-#### Recommendations
+#### Final Remarks
+- If you have multiple models, where the input from one model depends on the other model, I recommend that during the construction of the models, you save a pointer to the dependency model or the corresponding solver that contains the relevant fields. If you need access to the members (i.e. parameters) of the previous model, then store the model pointer. This helps particularly when reinitializing during runtime.
+- Probably wont work very well on very large grids.
 
+### Compiling
 
-
-
-
-The grids are coupled through
-
-This is all templated
-
-Additionally, it comes with a small renderer written for SDL2 and OpenGL3.
-
-The renderer is templated so that you can define your own
-
-(You don't need to know opengl, only install the libraries)
-
-that knows how to work with the solver
-
-
-
+I compiled using g++ on c++14. See the makefiles in the individual examples for what / how to link.
 
 #### Files
 
@@ -144,49 +159,10 @@ The solver can be used independently by including **source/solver/solver.h** in 
 The renderer can be used additionally by including **source/render/render.h** in your program.
 
 Remember to also download the other files in the respective folders.
-### Compiling
-
-Linking the renderer
 
 ### Examples
 
-I mainly applied this to a 3-step model
-
-
-
-
-
-
-
-
-
-
-### Notes
-- Probably wont work very well on very large grids.
-- Despite many attempts, currently only direct (absolute step) integration is stable.
-
-
-
-This is a proof of concept for a simple numerical PDE solver system using fft.
-
-I applied it to a simple model system (plate tectonics).
-
-Solver also has a number of helper functions (e.g. clustering an image, drawing an image) and a few overloaded operators for simple array masking.
-
-Known Issues:
-The numerics are still a little buggy but I'm working out the kinks.
-If you actually don't apply any differential operators, then there's no issue and you have simple integrators.
-
-### Compiling
-
-I compiled using g++ on c++14.
-
-Dependencies:
-- glm
-- fftw
-- libnoise
-
-If you're not sure, check the makefile to see what I'm linking
+Coming soon... one is already uploaded!
 
 ### License
 
